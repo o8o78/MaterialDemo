@@ -13,12 +13,15 @@ import com.byteroll.myapplication.bean.ScreenShot
 import com.byteroll.myapplication.databinding.ActivityMainBinding
 import com.byteroll.myapplication.utils.UIUtil
 import com.google.android.material.snackbar.Snackbar
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    val shots = mutableListOf(
+    private lateinit var adapter: ScreenShotAdapter
+
+    private val shots = mutableListOf(
         ScreenShot(R.drawable.card_1),
         ScreenShot(R.drawable.card_2),
         ScreenShot(R.drawable.card_3),
@@ -31,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         ScreenShot(R.drawable.card_10)
     )
 
-    val shotList = ArrayList<ScreenShot>()
+    private val shotList = ArrayList<ScreenShot>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +60,22 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Undo Delete", Toast.LENGTH_SHORT).show()
             }.show()
         }
+        binding.refreshLayout.setOnRefreshListener {
+            refreshScreenShots()
+        }
+    }
+
+    private fun refreshScreenShots(){
+        if (this::adapter.isInitialized){
+            thread {
+                Thread.sleep(2000)
+                runOnUiThread {
+                    initShots()
+                    adapter.notifyDataSetChanged()
+                    binding.refreshLayout.isRefreshing = false
+                }
+            }
+        }
     }
 
     private fun initShots(){
@@ -70,7 +89,7 @@ class MainActivity : AppCompatActivity() {
     private fun setRecyclerList(){
         val layoutManager = GridLayoutManager(this, 2)
         binding.recyclerList.layoutManager = layoutManager
-        val adapter = ScreenShotAdapter(this, shotList)
+        adapter = ScreenShotAdapter(this, shotList)
         binding.recyclerList.adapter = adapter
     }
 
